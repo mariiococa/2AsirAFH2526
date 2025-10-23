@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio MCA</title>
+
+  <style>
+    :root {
+      --accent-color: #4ea8de;
+      --text-color: #eaeaea;
+      --card-bg: #16161a;
+      --card-hover: #1e1e25;
+    }
+
+    * {
+      margin: 0; padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      line-height: 1.6;
+      overflow-x: hidden;
+      position: relative;
+      background: radial-gradient(circle at 50% 50%, #0e0f13, #101820, #141a23);
+      background-attachment: fixed;
+    }
+
+    /* Fondo con olas más rápidas */
+    .wave {
+      background: rgba(255,255,255,0.05);
+      border-radius: 1000% 1000% 0 0;
+      position: fixed;
+      width: 200%;
+      height: 13em;
+      animation: mover-ola 10s linear infinite;
+      transform: translate3d(0,0,0);
+      bottom: 0;
+      left: 0;
+      z-index: 0;
+      opacity: 0.6;
+    }
+
+    .wave:nth-of-type(2) {
+      bottom: -1.2em;
+      opacity: 0.4;
+      animation: mover-ola 13s linear reverse infinite;
+    }
+
+    .wave:nth-of-type(3) {
+      bottom: -2em;
+      opacity: 0.25;
+      animation: mover-ola 16s linear infinite;
+    }
+
+    @keyframes mover-ola {
+      0% { transform: translateX(0); }
+      50% { transform: translateX(-30%); }
+      100% { transform: translateX(0); }
+    }
+
+    .marca-agua {
+      position: fixed;
+      bottom: 15px; right: 25px;
+      font-size: 2rem;
+      color: rgba(255,255,255,0.08);
+      font-weight: 600;
+      letter-spacing: 2px;
+      user-select: none;
+      z-index: 1;
+      opacity: 0.2;
+      transition: transform 0.2s ease;
+      cursor: default;
+    }
+
+    .marca-agua:active { transform: scale(0.96); }
+
+    header { text-align: center; padding: 60px 20px 20px; z-index: 2; }
+    h1 { font-size: 2.5rem; color: var(--accent-color); }
+    p { color: #aaa; font-size: 1rem; }
+
+    #proyectos {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-auto-rows: 180px;
+      gap: 20px;
+      width: 90%; max-width: 950px;
+      margin: 40px 0; z-index: 2;
+      overflow-y: auto; max-height: 70vh; padding-right: 10px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      transition: background 0.3s ease, transform 0.2s ease;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      gap: 12px; height: 100%;
+    }
+
+    .card:hover { background-color: var(--card-hover); transform: translateY(-3px); }
+    .card h2 { color: var(--accent-color); font-size: 1.1rem; }
+    .card p { font-size: 0.85rem; color: #cfcfcf; }
+
+    button {
+      background-color: var(--accent-color);
+      color: white; border: none;
+      padding: 8px 16px; border-radius: 6px;
+      font-size: 0.9rem; transition: background 0.3s ease;
+    }
+
+    button:hover:not([disabled]) { background-color: #72c1f3; cursor: pointer; }
+    button[disabled] { background-color: #3a3a3c; color: #aaa; cursor: default; }
+
+    #proyectos::-webkit-scrollbar { width: 8px; }
+    #proyectos::-webkit-scrollbar-thumb { background: var(--accent-color); border-radius: 10px; }
+    #proyectos::-webkit-scrollbar-thumb:hover { background: #72c1f3; }
+
+    /* Modal del juego */
+    #tres-en-raya {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85);
+      align-items: center; justify-content: center;
+      flex-direction: column; z-index: 10;
+    }
+    #tres-en-raya.active { display: flex; }
+
+    .modo {
+      margin-bottom: 15px;
+      color: var(--accent-color);
+      background: var(--card-bg);
+      border: 1px solid var(--accent-color);
+      border-radius: 5px; padding: 5px 10px;
+    }
+
+    .tablero {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 8px;
+    }
+
+    .celda {
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem; color: var(--accent-color);
+      cursor: pointer; transition: background 0.3s;
+    }
+
+    .celda:hover { background-color: var(--card-hover); }
+
+    .boton-cerrar {
+      background: none; color: white;
+      border: 1px solid var(--accent-color);
+      border-radius: 5px; padding: 8px 15px;
+      margin-top: 20px; cursor: pointer; font-size: 0.9rem;
+    }
+
+    .mensaje { color: var(--accent-color); margin: 15px; font-weight: bold; }
+  </style>
+</head>
+
+<body>
+  <div class="wave"></div><div class="wave"></div><div class="wave"></div>
+
+  <div class="marca-agua">MCA</div>
+
+  <header>
+    <h1>Mi portfolio</h1>
+  </header>
+
+  <section id="proyectos">
+    <div class="card">
+      <h2>Actividad 1</h2>
+      <p>Pendiente de publicación</p>
+      <!-- <button onclick="abrirRepositorio('https://mariiococa.github.io/2AsirAFH2526/trabajos/index.html')">Próximamente</button> -->
+    </div>
+    
+    <div class="card">
+      <h2>Actividad 2</h2>
+      <p>Pendiente de publicación</p>
+      <!-- <button onclick="abrirRepositorio('https://mariiococa.github.io/2AsirAFH2526/trabajos/index.html')">Próximamente</button> -->
+    </div>
+
+    <div class="card">
+      <h2>Actividad 3</h2>
+      <p>Montaje de un servidor de IA</p>
+      <a href="https://mariiococa.github.io/2AsirAFH2526/trabajos/PracticaMontaje_MCA.pdf"><button>Ver proyecto</button></a>
+    </div>
+
+    <div class="card">
+      <h2>Actividad 4</h2>
+      <p>Práctica de web estática</p>
+      <a href="https://mariiococa.github.io/2AsirAFH2526/trabajos/index.html"><button>Ver proyecto</button></a>
+    </div>
+
+    <!-- Tarjetas vacías manteniendo estructura -->
+    <div class="card">
+      <h2>Actividad 5</h2>
+      <p>Pendiente de publicación</p>
+      <!-- <a href="https://mariiococa.github.io/2AsirAFH2526/trabajos/index.html"><button>Ver proyecto</button></a> -->
+    </div>
+
+    <div class="card">
+      <h2>Actividad 6</h2>
+      <p>Pendiente de publicación</p>
+      <!-- <a href="https://mariiococa.github.io/2AsirAFH2526/trabajos/index.html"><button>Ver proyecto</button></a> -->
+    </div>
+
+    <div class="card">
+      <h2>Actividad 7</h2>
+      <p>Pendiente de publicación</p>
+      <!-- <a href="https://mariiococa.github.io/2AsirAFH2526/trabajos/index.html"><button>Ver proyecto</button></a> -->
+    </div>
+
+    <div class="card">
+      <h2>Actividad 8</h2>
+      <p>Pendiente de publicación</p>
+      <!-- <a href="https://mariiococa.github.io/2AsirAFH2526/trabajos/index.html"><button>Ver proyecto</button></a> -->
+    </div>
+
+    <div class="card">
+      <h2>Actividad 9</h2>
+      <p>Pendiente de publicación</p>
+      <!-- <a href="https://mariiococa.github.io/2AsirAFH2526/trabajos/index.html"><button>Ver proyecto</button></a> -->
+    </div>
+
+    <div class="card">
+      <h2>Actividad 10</h2>
+      <p>Pendiente de publicación</p>
+      <!-- <a href="https://mariiococa.github.io/2AsirAFH2526/trabajos/index.html"><button>Ver proyecto</button></a> -->
+    </div>
+
+    <div class="card">
+      <h2>Actividad 11</h2>
+      <p>Pendiente de publicación</p>
+      <!-- <a href="https://mariiococa.github.io/2AsirAFH2526/trabajos/index.html"><button>Ver proyecto</button></a> -->
+    </div>
+
+    <div class="card">
+      <h2>Actividad 12</h2>
+      <p>Pendiente de publicación</p>
+      <!-- <a href="https://mariiococa.github.io/2AsirAFH2526/trabajos/index.html"><button>Ver proyecto</button></a> -->
+    </div>
+  </section>
+
+  <!-- Modal del 3 en raya -->
+  <div id="tres-en-raya">
+    <h2 class="mensaje" id="mensaje">Turno de X</h2>
+    <select id="modo" class="modo">
+      <option value="vsJugador">Jugador vs Jugador</option>
+      <option value="vsIA">Jugador vs Máquina</option>
+    </select>
+    <div class="tablero" id="tablero">
+      <div class="celda" data-index="0"></div>
+      <div class="celda" data-index="1"></div>
+      <div class="celda" data-index="2"></div>
+      <div class="celda" data-index="3"></div>
+      <div class="celda" data-index="4"></div>
+      <div class="celda" data-index="5"></div>
+      <div class="celda" data-index="6"></div>
+      <div class="celda" data-index="7"></div>
+      <div class="celda" data-index="8"></div>
+    </div>
+    <button class="boton-cerrar" onclick="cerrarJuego()">Cerrar</button>
+  </div>
+
+  <script>
+    // Pulsación larga (3 s) en la marca de agua para abrir el juego.
+    const marcaAgua=document.querySelector('.marca-agua');
+    let presion;
+
+    function iniciarPulsacion(){
+      presion=setTimeout(()=>{
+        document.getElementById('tres-en-raya').classList.add('active');
+        reiniciarJuego();
+      },3000);
+    }
+
+    function cancelarPulsacion(){ clearTimeout(presion); }
+
+    marcaAgua.addEventListener('mousedown',iniciarPulsacion);
+    marcaAgua.addEventListener('touchstart',iniciarPulsacion);
+    marcaAgua.addEventListener('mouseup',cancelarPulsacion);
+    marcaAgua.addEventListener('mouseleave',cancelarPulsacion);
+    marcaAgua.addEventListener('touchend',cancelarPulsacion);
+
+    const celdas=document.querySelectorAll('.celda');
+    const mensaje=document.getElementById('mensaje');
+    const combinaciones=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    let turno='X',modo='vsJugador';
+
+    document.getElementById('modo').addEventListener('change',e=>{
+      modo=e.target.value; reiniciarJuego();
+    });
+
+    function reiniciarJuego(){
+      turno='X'; mensaje.textContent='Turno de X';
+      celdas.forEach(c=>{c.textContent='';c.classList.remove('ganador');});
+    }
+
+    celdas.forEach(celda=>{
+      celda.addEventListener('click',()=>{
+        if(celda.textContent!=='')return;
+        if(modo==='vsJugador'){
+          jugadaJugador(celda);
+        }else{
+          if(turno==='X'){
+            jugadaJugador(celda);
+            if(!verificarGanador()&&!empate()){
+              setTimeout(movimientoIA,400);
+            }
+          }
+        }
+      });
+    });
+
+    function jugadaJugador(celda){
+      celda.textContent=turno;
+      if(verificarGanador()){mensaje.textContent=`¡${turno} ha ganado!`;return;}
+      if(empate()){mensaje.textContent='Empate';return;}
+      turno=turno==='X'?'O':'X';
+      if(modo==='vsJugador')mensaje.textContent=`Turno de ${turno}`;
+    }
+
+    // --- IA con algoritmo Minimax ---
+    function movimientoIA(){
+      const mejor=obtenerMejorMovimiento();
+      if(mejor!=null){
+        celdas[mejor].textContent='O';
+        if(verificarGanador()){mensaje.textContent='¡La máquina ha ganado!';return;}
+        if(empate()){mensaje.textContent='Empate';return;}
+        turno='X'; mensaje.textContent='Tu turno';
+      }
+    }
+
+    function obtenerMejorMovimiento(){
+      let mejorValor=-Infinity,mejorMovimiento;
+      celdas.forEach((celda,i)=>{
+        if(celda.textContent===''){
+          celda.textContent='O';
+          let valor=minimax(0,false);
+          celda.textContent='';
+          if(valor>mejorValor){mejorValor=valor;mejorMovimiento=i;}
+        }
+      });
+      return mejorMovimiento;
+    }
+
+    function minimax(prof,esMax){
+      const ganador=chequearGanadorStatic();
+      if(ganador==='O')return 10-prof;
+      if(ganador==='X')return prof-10;
+      if(empateStatic())return 0;
+
+      if(esMax){
+        let mejor=-Infinity;
+        celdas.forEach(c=>{
+          if(c.textContent===''){
+            c.textContent='O';
+            mejor=Math.max(mejor,minimax(prof+1,false));
+            c.textContent='';
+          }
+        });
+        return mejor;
+      }else{
+        let peor=Infinity;
+        celdas.forEach(c=>{
+          if(c.textContent===''){
+            c.textContent='X';
+            peor=Math.min(peor,minimax(prof+1,true));
+            c.textContent='';
+          }
+        });
+        return peor;
+      }
+    }
+
+    function chequearGanadorStatic(){
+      for(const [a,b,c] of combinaciones){
+        if(celdas[a].textContent&&celdas[a].textContent===celdas[b].textContent&&celdas[a].textContent===celdas[c].textContent){
+          return celdas[a].textContent;
+        }
+      }
+      return null;
+    }
+
+    function empateStatic(){return [...celdas].every(c=>c.textContent!=='');}
+    function verificarGanador(){
+      return combinaciones.some(c=>{
+        if(celdas[c[0]].textContent===turno&&celdas[c[1]].textContent===turno&&celdas[c[2]].textContent===turno){
+          c.forEach(i=>celdas[i].classList.add('ganador'));return true;
+        }return false;
+      });
+    }
+    function empate(){return [...celdas].every(c=>c.textContent!=='');}
+    function cerrarJuego(){
+      document.getElementById('tres-en-raya').classList.remove('active');
+      reiniciarJuego();
+    }
+  </script>
+</body>
+</html>
