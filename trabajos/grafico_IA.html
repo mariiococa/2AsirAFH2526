@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modelos IA MCA</title>
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; }
+    body {
+      margin: 0;
+      padding: 8px 10px;
+      background: radial-gradient(circle at top,#020617,#000);
+      color: #e5e7eb;
+    }
+    @media (max-width: 900px) {
+      body { padding: 6px 6px; }
+    }
+
+    h1 { margin: 0 0 6px; text-align: left; font-size: 22px; }
+    h1 span { font-weight: 500; color: #93c5fd; }
+
+    .page {
+      max-width: none;
+      margin: 0;
+    }
+
+    .header-card {
+      padding: 8px 12px;
+      border-radius: 16px;
+      margin-bottom: 8px;
+      background: radial-gradient(circle at top left,#1d4ed8,#020617 55%);
+      border: 1px solid rgba(191,219,254,0.1);
+      box-shadow: 0 16px 32px rgba(15,23,42,0.9);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-meta {
+      font-size: 12px;
+      color: #cbd5f5;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.8);
+      border: 1px solid rgba(148,163,184,0.6);
+      font-size: 11px;
+      color: #e5e7eb;
+    }
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0,2fr) minmax(0,1.2fr);
+      gap: 20px;
+      align-items: start; /* no estirar filas, cada columna a su altura */
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: minmax(0,1fr); }
+    }
+
+    .card {
+      background: radial-gradient(circle at top left,#020617,#020617);
+      border-radius: 16px;
+      padding: 10px 14px 14px;
+      box-shadow: 0 18px 32px rgba(0,0,0,0.75);
+      border: 1px solid #1f2937;
+      display: block; /* que mida según contenido */
+    }
+    .layout > .card:first-child {
+      padding-top: 6px;
+      padding-bottom: 10px;
+    }
+
+    .riddle-box {
+      margin-bottom: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(15,23,42,0.95);
+      border: 1px solid #1f2937;
+      font-size: 13px;
+      line-height: 1.4;
+      color: #e5e7eb;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 8px;
+    }
+    .control-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid #1f2937;
+    }
+    .control-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9ca3af;
+    }
+    .chip-row {
+      display: inline-flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .chip {
+      border: none;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      cursor: pointer;
+      background: transparent;
+      color: #e5e7eb;
+      border: 1px solid transparent;
+      transition: background 0.15s ease-out, color 0.15s ease-out, transform 0.12s ease-out, border-color 0.15s;
+    }
+    .chip:hover {
+      transform: translateY(-1px);
+      background: rgba(37,99,235,0.35);
+    }
+    .chip.active {
+      background: linear-gradient(135deg,#2563eb,#0ea5e9);
+      color: #020617;
+      border-color: transparent;
+      box-shadow: 0 0 0 1px rgba(15,23,42,0.9);
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 6 / 2.6; /* rellena más, sin hueco enorme */
+      display: block;
+      margin: 0 auto;
+      background: #020617;
+      border-radius: 12px;
+    }
+    @media (max-width: 600px) {
+      canvas { aspect-ratio: 16 / 9; }
+    }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: #e5e7eb;
+    }
+    .legend-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 1px solid #020617;
+    }
+
+    .tooltip {
+      position: fixed;
+      pointer-events: none;
+      background: rgba(15,23,42,0.98);
+      color: #e5e7eb;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      border: 1px solid #1d4ed8;
+      box-shadow: 0 16px 35px rgba(0,0,0,0.8);
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 0.12s ease-out, transform 0.12s ease-out;
+      z-index: 1000;
+      white-space: nowrap;
+    }
+    .tooltip.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(37,99,235,0.18);
+      border: 1px solid rgba(96,165,250,0.6);
+      font-size: 11px;
+      margin-left: 4px;
+      color: #dbeafe;
+    }
+
+    .side-card-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 6px;
+      color: #f9fafb;
+    }
+
+    .side-small {
+      font-size: 13px;
+      color: #9ca3af;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .metric-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.95);
+      border: 1px solid #1e3a8a;
+      font-size: 12px;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+    .metric-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #3b82f6;
+    }
+    .metric-pill:nth-child(2) .metric-dot { background:#22c55e; }
+    .metric-pill:nth-child(3) .metric-dot { background:#eab308; }
+
+    .doc-section {
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid #1f2937;
+      font-size: 13px;
+      color: #e5e7eb;
+    }
+
+    .doc-section h3 {
+      font-size: 14px;
+      margin: 10px 0 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .doc-section h3::before {
+      content: "◆";
+      font-size: 10px;
+      color: #60a5fa;
+    }
+
+    .doc-section p {
+      margin: 4px 0 8px;
+      line-height: 1.55;
+    }
+
+    .doc-section ul {
+      margin: 4px 0 10px;
+      padding-left: 20px;
+    }
+
+    .doc-section li {
+      margin: 3px 0;
+    }
+
+    .footer-text {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #9ca3af;
+      text-align: left;
+    }
+
+    .quality-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 12px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .quality-table th,
+    .quality-table td {
+      border: 1px solid #1f2937;
+      padding: 6px 8px;
+      text-align: left;
+    }
+    .quality-table th {
+      background: #020617;
+      font-weight: 500;
+      color: #e5e7eb;
+    }
+    .quality-table tr:nth-child(even) {
+      background: rgba(15,23,42,0.7);
+    }
+    .badge-ok {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: rgba(22,163,74,0.15);
+      border: 1px solid rgba(22,163,74,0.7);
+      color: #bbf7d0;
+      font-size: 11px;
+    }
+    .badge-todo {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: rgba(148,163,184,0.12);
+      border: 1px solid rgba(148,163,184,0.6);
+      color: #e5e7eb;
+      font-size: 11px;
+    }
+
+    .side-small:last-of-type {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header-card">
+      <div>
+        <h1><span>Panel de rendimiento ·</span> Comparativa de modelos IA</h1>
+      </div>
+      <div class="badge">
+        <span class="badge-dot"></span>
+        Datos estáticos · CSV local
+      </div>
+    </div>
+
+    <div class="layout">
+      <!-- izquierda: gráfico -->
+      <div class="card">
+        <div>
+          <div id="riddleBox" class="riddle-box">
+            <strong id="riddleTitle">Enunciado (Fácil):</strong>
+            <span id="riddleText"></span>
+          </div>
+
+          <div class="controls">
+            <div class="control-group" id="difficultyGroup">
+              <span class="control-label">Dificultad</span>
+              <div class="chip-row">
+                <button class="chip active" data-diff="Facil">Fácil</button>
+                <button class="chip" data-diff="Medio">Medio</button>
+                <button class="chip" data-diff="Dificil">Difícil</button>
+              </div>
+            </div>
+            <div class="control-group" id="metricGroup">
+              <span class="control-label">Métrica</span>
+              <div class="chip-row">
+                <button class="chip active" data-metric="tokens_s">tokens/s</button>
+                <button class="chip" data-metric="coste">coste</button>
+                <button class="chip" data-metric="ptk">ptk</button>
+                <button class="chip" data-metric="eff">eficiencia</button>
+              </div>
+            </div>
+            <div class="control-group" id="systemGroup">
+              <span class="control-label">Sistema</span>
+              <div class="chip-row">
+                <button class="chip active" data-sys="Ambos">Mac vs Win</button>
+                <button class="chip" data-sys="Mac">Solo Mac</button>
+                <button class="chip" data-sys="Windows">Solo Windows</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="controls" style="margin-top:4px;">
+            <div class="control-group" id="modelGroup">
+              <span class="control-label">Modelos</span>
+              <div class="chip-row">
+                <button class="chip active" data-model="all">Todos</button>
+                <button class="chip" data-model="Ibm/Granite-4-h-tiny">Granite</button>
+                <button class="chip" data-model="qwen/qwen3-vl-4b">Qwen</button>
+                <button class="chip" data-model="microsoft/phi-4-mini-reasonig">Phi‑4 mini</button>
+                <button class="chip" data-model="google/gemma-3-4b">Gemma</button>
+              </div>
+            </div>
+          </div>
+
+          <canvas id="chart"></canvas>
+          <div class="legend" id="legend"></div>
+        </div>
+      </div>
+
+      <!-- derecha: documentación -->
+      <div class="card">
+        <div class="side-content">
+          <h2 class="side-card-title">Resumen de configuración</h2>
+          <div class="side-small">
+            Todos los modelos se evalúan con la misma temperatura y sin contexto adicional, centrándose en rendimiento bruto y coste. 
+          </div>
+
+          <div style="margin-bottom:10px;">
+            <span class="metric-pill"><span class="metric-dot"></span>tokens/s · velocidad</span>
+            <span class="metric-pill"><span class="metric-dot"></span>coste · consumo</span>
+            <span class="metric-pill"><span class="metric-dot"></span>ptk · token por segundo</span>
+          </div>
+
+          <div class="doc-section">
+            <h3>Parámetros y temperatura</h3>
+            <ul>
+              <li><strong>Ibm/Granite-4-h-tiny</strong>: 7B parámetros, temperatura 0.8.</li>
+              <li><strong>qwen/qwen3-vl-4b</strong>: 4B parámetros, temperatura 0.8.</li>
+              <li><strong>microsoft/phi-4-mini-reasonig</strong>: 15B parámetros, temperatura 0.8.</li>
+              <li><strong>google/gemma-3-4b</strong>: 12B parámetros, temperatura 0.8.</li>
+            </ul>
+
+            <h3>Calidad en acertijos</h3>
+            <p>
+              Se han usado tres problemas matemáticos como prueba de calidad: edades (Fácil), tres consecutivos (Medio) y triángulo de área máxima (Difícil). 
+            </p>
+            <table class="quality-table">
+              <thead>
+                <tr>
+                  <th>Modelo</th>
+                  <th>Fácil</th>
+                  <th>Medio</th>
+                  <th>Difícil</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Granite-4-h-tiny</td>
+                  <td><span class="badge-ok">Acierta</span></td>
+                  <td><span class="badge-ok">Acierta</span></td>
+                  <td><span class="badge-ok">Acierta</span></td>
+                </tr>
+                <tr>
+                  <td>Qwen3‑vl‑4B</td>
+                  <td><span class="badge-ok">Acierta</span></td>
+                  <td><span class="badge-ok">Acierta</span></td>
+                  <td><span class="badge-ok">Acierta</span></td>
+                </tr>
+                <tr>
+                  <td>Phi‑4 mini reasoning</td>
+                  <td><span class="badge-ok">Acierta</span></td>
+                  <td><span class="badge-ok">Acierta</span></td>
+                  <td><span class="badge-ok">Acierta</span></td>
+                </tr>
+                <tr>
+                  <td>Gemma‑3‑4B</td>
+                  <td><span class="badge-ok">Acierta</span></td>
+                  <td><span class="badge-ok">Acierta</span></td>
+                  <td><span class="badge-ok">Acierta</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="side-small">
+              Según el CSV, todos los modelos aciertan los tres acertijos en Mac y en Windows, por lo que la diferencia principal está en velocidad y coste. 
+            </p>
+
+            <h3>Prompts y contexto</h3>
+            <p>
+              En esta versión solo se han medido ejecuciones sin contexto adicional, utilizando prompts breves centrados en el enunciado del problema. 
+            </p>
+            <p>
+              Como posible ampliación, se podrían repetir las pruebas con prompts más largos y contextos extensos para observar cómo cambia el coste por token y si aparecen más fallos en los acertijos. 
+            </p>
+
+            <h3>Cómo leer la gráfica</h3>
+            <p>
+              La métrica seleccionada (tokens/s, coste, ptk o eficiencia) se muestra en el eje vertical, mientras que en el eje horizontal aparecen los modelos, duplicados por sistema cuando se compara Mac vs Windows. 
+            </p>
+            <p>
+              Usando los filtros de dificultad, métrica, sistema y modelos, se puede responder al enunciado del evento de curso de forma visual e interactiva. 
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tooltip" class="tooltip"></div>
+
+  <script>
+    const rawData = {
+      Facil: {
+        Mac: [
+          { modelo: "Ibm/Granite-4-h-tiny", tokens_s: 41.85, coste: 210,  ptk: 0.71 },
+          { modelo: "qwen/qwen3-vl-4b",     tokens_s: 39.03, coste: 164,  ptk: 0.93 },
+          { modelo: "microsoft/phi-4-mini-reasonig",  tokens_s: 39.88, coste: 1147, ptk: 1.18 },
+          { modelo: "google/gemma-3-4b",           tokens_s: 41.42, coste: 139,  ptk: 0.75 }
+        ],
+        Windows: [
+          { modelo: "Ibm/Granite-4-h-tiny", tokens_s: 69.47, coste: 315,  ptk: 0.12 },
+          { modelo: "qwen/qwen3-vl-4b",     tokens_s: 111.16,coste: 220,  ptk: 0.05 },
+          { modelo: "microsoft/phi-4-mini-reasonig",  tokens_s: 41.81, coste: 688,  ptk: 0.18 },
+          { modelo: "google/gemma-3-4b",           tokens_s: 45.51, coste: 225,  ptk: 0.21 }
+        ]
+      },
+      Medio: {
+        Mac: [
+          { modelo: "Ibm/Granite-4-h-tiny", tokens_s: 43.19, coste: 211,  ptk: 0.24 },
+          { modelo: "qwen/qwen3-vl-4b",     tokens_s: 39.56, coste: 212,  ptk: 0.56 },
+          { modelo: "microsoft/phi-4-mini-reasonig",  tokens_s: 40.88, coste: 1033, ptk: 0.31 },
+          { modelo: "google/gemma-3-4b",           tokens_s: 41.44, coste: 171,  ptk: 0.3 }
+        ],
+        Windows: [
+          { modelo: "Ibm/Granite-4-h-tiny", tokens_s: 70.51, coste: 175,  ptk: 0.2 },
+          { modelo: "qwen/qwen3-vl-4b",     tokens_s: 105.64,coste: 262,  ptk: 0.11 },
+          { modelo: "microsoft/phi-4-mini-reasonig",  tokens_s: 41.3,  coste: 523,  ptk: 0.06 },
+          { modelo: "google/gemma-3-4b",           tokens_s: 45.58, coste: 243,  ptk: 0.15 }
+        ]
+      },
+      Dificil: {
+        Mac: [
+          { modelo: "Ibm/Granite-4-h-tiny", tokens_s: 41.87, coste: 320,  ptk: 0.29 },
+          { modelo: "qwen/qwen3-vl-4b",     tokens_s: 38.87, coste: 648,  ptk: 0.32 },
+          { modelo: "microsoft/phi-4-mini-reasonig",  tokens_s: 39.92, coste: 2112, ptk: 0.31 },
+          { modelo: "google/gemma-3-4b",           tokens_s: 41.19, coste: 429,  ptk: 0.38 }
+        ],
+        Windows: [
+          { modelo: "Ibm/Granite-4-h-tiny", tokens_s: 69.67, coste: 301,  ptk: 0.13 },
+          { modelo: "qwen/qwen3-vl-4b",     tokens_s: 108.39,coste: 702,  ptk: 0.07 },
+          { modelo: "microsoft/phi-4-mini-reasonig",  tokens_s: 41.09, coste: 1923, ptk: 0.16 },
+          { modelo: "google/gemma-3-4b",           tokens_s: 44.61, coste: 464,  ptk: 0.16 }
+        ]
+      }
+    };
+
+    const riddles = {
+      Facil: "La edad de Ana y Luis suma 30. Ana es 4 años mayor que Luis. ¿Qué edad tiene cada uno?",
+      Medio: "Tres consecutivos: La suma de tres números enteros consecutivos es 78. ¿Cuáles son?",
+      Dificil: "Un triángulo rectángulo tiene catetos a y b con a+b=30 y el área es máxima. ¿Cuánto valen a y b y cuál es la área máxima?"
+    };
+
+    const colors = {
+      Mac: "#e5e7eb",
+      Windows: "#2563eb"
+    };
+
+    const canvas = document.getElementById("chart");
+    const ctx = canvas.getContext("2d");
+    const legendEl = document.getElementById("legend");
+    const tooltip = document.getElementById("tooltip");
+    const riddleTitle = document.getElementById("riddleTitle");
+    const riddleText = document.getElementById("riddleText");
+
+    let currentDifficulty = "Facil";
+    let currentMetric = "tokens_s";
+    let currentSystem = "Ambos";
+    let activeModelsFilter = "all";
+    let bars = [];
+
+    const diffChips = document.querySelectorAll("#difficultyGroup .chip");
+    const metricChips = document.querySelectorAll("#metricGroup .chip");
+    const sysChips = document.querySelectorAll("#systemGroup .chip");
+    const modelChips = document.querySelectorAll("#modelGroup .chip");
+
+    diffChips.forEach(chip => {
+      chip.addEventListener("click", () => {
+        diffChips.forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        currentDifficulty = chip.dataset.diff;
+        resizeCanvas();
+      });
+    });
+
+    metricChips.forEach(chip => {
+      chip.addEventListener("click", () => {
+        metricChips.forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        currentMetric = chip.dataset.metric;
+        resizeCanvas();
+      });
+    });
+
+    sysChips.forEach(chip => {
+      chip.addEventListener("click", () => {
+        sysChips.forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        currentSystem = chip.dataset.sys;
+        resizeCanvas();
+      });
+    });
+
+    modelChips.forEach(chip => {
+      chip.addEventListener("click", () => {
+        modelChips.forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        activeModelsFilter = chip.dataset.model;
+        resizeCanvas();
+      });
+    });
+
+    function formatMetricName(m) {
+      if (m === "tokens_s") return "tokens/s";
+      if (m === "coste") return "coste";
+      if (m === "ptk") return "ptk";
+      if (m === "eff") return "tokens/s ÷ coste";
+      return m;
+    }
+
+    function updateRiddle() {
+      const labelMap = { Facil: "Fácil", Medio: "Medio", Dificil: "Difícil" };
+      riddleTitle.textContent = `Enunciado (${labelMap[currentDifficulty]}):`;
+      riddleText.textContent = riddles[currentDifficulty] || "";
+    }
+
+    function getMetricValue(item) {
+      if (currentMetric === "eff") return item.tokens_s / item.coste;
+      return item[currentMetric];
+    }
+
+    function drawChart() {
+      updateRiddle();
+
+      const difficulty = currentDifficulty;
+      const systemMode = currentSystem;
+
+      const macDataFull = rawData[difficulty].Mac;
+      const winDataFull = rawData[difficulty].Windows;
+
+      const filterFn = (d) =>
+        activeModelsFilter === "all" || d.modelo === activeModelsFilter;
+
+      const macData = macDataFull.filter(filterFn);
+      const winData = winDataFull.filter(filterFn);
+
+      const labels = macData.map(d => d.modelo);
+      const macValues = macData.map(d => getMetricValue(d));
+      const winValues = winData.map(d => getMetricValue(d));
+
+      const series = [];
+      if (systemMode === "Mac" || systemMode === "Ambos") {
+        series.push({ sistema: "Mac", values: macValues });
+      }
+      if (systemMode === "Windows" || systemMode === "Ambos") {
+        series.push({ sistema: "Windows", values: winValues });
+      }
+
+      const allValues = series.flatMap(s => s.values);
+      const maxValue = Math.max(...allValues) * 1.1 || 1;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      bars = [];
+
+      const padding = { top: 26, right: 30, bottom: 70, left: 80 };
+      const chartWidth = canvas.width - padding.left - padding.right;
+      const chartHeight = canvas.height - padding.top - padding.bottom;
+
+      const xCount = labels.length || 1;
+      const groupWidth = chartWidth / xCount;
+      const barWidth = groupWidth * 0.28 / Math.max(1, series.length);
+      const groupGap = groupWidth * 0.12;
+
+      ctx.strokeStyle = "#111827";
+      ctx.lineWidth = 1;
+      ctx.font = "12px system-ui";
+      ctx.fillStyle = "#9ca3af";
+      const steps = 5;
+      for (let i = 0; i <= steps; i++) {
+        const value = (maxValue / steps) * i;
+        const y = padding.top + chartHeight - (value / maxValue) * chartHeight;
+        ctx.beginPath();
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(padding.left + chartWidth, y);
+        ctx.stroke();
+        const digits = currentMetric === "coste" ? 0 : (currentMetric === "eff" ? 4 : 2);
+        ctx.fillText(value.toFixed(digits), 16, y + 4);
+      }
+
+      ctx.strokeStyle = "#4b5563";
+      ctx.beginPath();
+      ctx.moveTo(padding.left, padding.top);
+      ctx.lineTo(padding.left, padding.top + chartHeight);
+      ctx.lineTo(padding.left + chartWidth, padding.top + chartHeight);
+      ctx.stroke();
+
+      labels.forEach((label, i) => {
+        const baseX = padding.left + i * groupWidth + groupWidth / 2;
+
+        series.forEach((serie, sIdx) => {
+          const val = serie.values[i];
+          const barHeight = (val / maxValue) * chartHeight;
+          const totalWidth = barWidth * series.length + groupGap;
+          const startX = baseX - totalWidth / 2;
+          const x = startX + sIdx * barWidth + groupGap / 2;
+          const y = padding.top + chartHeight - barHeight;
+
+          const rect = {
+            x, y, w: barWidth, h: barHeight,
+            sistema: serie.sistema,
+            label,
+            valor: val,
+            dificultad: difficulty,
+            metrica: currentMetric,
+            groupIndex: i
+          };
+          drawBar(rect, colors[serie.sistema]);
+          bars.push(rect);
+        });
+
+        ctx.save();
+        ctx.translate(baseX, padding.top + chartHeight + 40);
+        ctx.rotate(-Math.PI / 6);
+        ctx.fillStyle = "#e5e7eb";
+        ctx.textAlign = "center";
+        ctx.fillText(label, 0, 0);
+        ctx.restore();
+      });
+
+      ctx.fillStyle = "#e5e7eb";
+      ctx.font = "14px system-ui";
+      ctx.textAlign = "center";
+      const metricLabel = formatMetricName(currentMetric);
+      ctx.fillText(
+        `Métrica: ${metricLabel} · Dificultad: ${difficulty} · Sistema: ${systemMode}`,
+        padding.left + chartWidth / 2,
+        18
+      );
+
+      legendEl.innerHTML = "";
+      if (systemMode === "Mac" || systemMode === "Ambos") {
+        const div = document.createElement("div");
+        div.className = "legend-item";
+        const sw = document.createElement("span");
+        sw.className = "legend-swatch";
+        sw.style.background = colors.Mac;
+        div.appendChild(sw);
+        div.appendChild(document.createTextNode("Mac Mini"));
+        legendEl.appendChild(div);
+      }
+      if (systemMode === "Windows" || systemMode === "Ambos") {
+        const div = document.createElement("div");
+        div.className = "legend-item";
+        const sw = document.createElement("span");
+        sw.className = "legend-swatch";
+        sw.style.background = colors.Windows;
+        div.appendChild(sw);
+        div.appendChild(document.createTextNode("Windows"));
+        legendEl.appendChild(div);
+      }
+    }
+
+    function drawBar(rect, color, highlight = false, shaded = false) {
+      const { x, y, w, h } = rect;
+      if (shaded) {
+        ctx.fillStyle = "rgba(15,23,42,0.7)";
+        ctx.fillRect(x - 6, y, w + 12, h);
+      }
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      const radius = highlight ? 8 : 4;
+      ctx.roundRect(x, y, w, h, radius);
+      ctx.fill();
+      if (color === "#e5e7eb") {
+        ctx.strokeStyle = "rgba(15,23,42,0.6)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+      if (highlight) {
+        ctx.strokeStyle = "#facc15";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+
+    function getMousePos(evt) {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      return {
+        x: (evt.clientX - rect.left) * dpr,
+        y: (evt.clientY - rect.top) * dpr
+      };
+    }
+
+    function redrawWithHighlight(activeBar) {
+      drawChart();
+      if (!activeBar) return;
+      const groupIndex = activeBar.groupIndex;
+      const groupBars = bars.filter(b => b.groupIndex === groupIndex);
+      groupBars.forEach(b => drawBar(b, colors[b.sistema], false, true));
+      drawBar(activeBar, colors[activeBar.sistema], true);
+    }
+
+    canvas.addEventListener("mousemove", (evt) => {
+      const pos = getMousePos(evt);
+      let active = null;
+
+      for (const bar of bars) {
+        if (
+          pos.x >= bar.x &&
+          pos.x <= bar.x + bar.w &&
+          pos.y >= bar.y &&
+          pos.y <= bar.y + bar.h
+        ) {
+          active = bar;
+          break;
+        }
+      }
+
+      if (active) {
+        redrawWithHighlight(active);
+        const metricName = formatMetricName(active.metrica);
+        const digits = active.metrica === "coste" ? 0 : (active.metrica === "eff" ? 4 : 2);
+        tooltip.innerHTML =
+          `<strong>${active.label}</strong>` +
+          `<span class="pill">${active.sistema}</span><br>` +
+          `${metricName}: ${active.valor.toFixed(digits)}<br>` +
+          `Dificultad: ${active.dificultad}`;
+        tooltip.classList.add("visible");
+        tooltip.style.left = `${evt.clientX + 12}px`;
+        tooltip.style.top = `${evt.clientY + 12}px`;
+        canvas.style.cursor = "pointer";
+      } else {
+        redrawWithHighlight(null);
+        tooltip.classList.remove("visible");
+        canvas.style.cursor = "default";
+      }
+    });
+
+    canvas.addEventListener("mouseleave", () => {
+      tooltip.classList.remove("visible");
+      redrawWithHighlight(null);
+      canvas.style.cursor = "default";
+    });
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      drawChart();
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+  </script>
+</body>
+</html>
